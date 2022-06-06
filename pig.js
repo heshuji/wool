@@ -11,7 +11,7 @@ let num =100
 let num2=10
 
 //元宝控制   每次刷0.5元宝
-let coin=0.5
+let coin=1.0013
 
 
 
