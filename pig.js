@@ -5,10 +5,10 @@ const $ = Env(jobname)
 
 
 //循环次数  每次运行1次循环 
-let num =10
+let num =100
 
 //刷金循环次数   一次循环刷10次元宝刷广告
-let num2=10
+let num2=100
 
 //元宝控制   每次刷0.5元宝
 let coin=0.5
