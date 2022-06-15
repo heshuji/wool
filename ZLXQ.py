@@ -36,6 +36,8 @@ class ZLXQ:
         self.freeloopinfo = "https://app.sjdhwu.com/yw_api/v3/freeFlopInformation/"
         self.prizeget = "https://app.sjdhwu.com/yw_api/v3/prizeGet/"
         self.doubleprize = "https://app.sjdhwu.com/yw_api/v3/flopDoubled/"
+        self.url_red = "https://app.sjdhwu.com/yw_api/v3/redEnvelopeRewardCollection/"
+        self.red_double = "https://app.sjdhwu.com/yw_api/v3/redEnvelopeDoubledToReceive/"
 
     @staticmethod
     def get_timestamp():
@@ -132,7 +134,7 @@ class ZLXQ:
         sign = self.create_sign(sign_str)
         pk_info = self.post_requests(self.pk_reload, sign, None)
         if pk_info:
-            self.logger.info("刷新pk次数", pk_info['message'])
+            self.logger.info("刷新pk次数%s" % pk_info['message'])
         else:
             self.logger.info("刷新pk_info: %s" % pk_info)
 
@@ -251,18 +253,46 @@ class ZLXQ:
     def cyc_flop(self):
         self.logger.info("开始抽奖")
         num = self.free_flop()
-        for i in range(num):
+        for i in range(int(num)):
             self.logger.info("第%s次抽奖" % (i + 1))
             as_id = self.prize_flop()
             if as_id:
                 self.double_flop(as_id)
             else:
                 self.logger.info("不翻倍")
-                break
             self.logger.info("随机等待")
-            if i == num - 1:
+            if i == int(num) - 1:
                 break
             time.sleep(random.randint(15, 17))
+
+    def red_reward(self):
+        str_key = "{}--10470706--{}--{}".format(self.get_timestamp(), self.key, self.key)
+        sign = self.create_sign(str_key)
+        data = self.post_requests(self.url_red, sign, None)
+        if data:
+            self.logger.info("获得：%s" % data['data']['number'])
+            return data['data']['association_id']
+        else:
+            self.logger.info("获取红包失败")
+            return None
+
+    def red_double_reward(self, i):
+        data = {"association_id": i}
+        sign_key = "{}--10470706--{}association_id--{}{}".format(self.get_timestamp(), self.key, i, self.key)
+        sign = self.create_sign(sign_key)
+        result = self.post_requests(self.red_double, sign, data)
+        if result:
+            self.logger.info("翻倍：%s" % result['data']['number'])
+        else:
+            self.logger.info("翻倍失败")
+
+    def red(self):
+        self.logger.info("开始领取红包")
+        i = self.red_reward()
+        if i:
+            self.red_double_reward(i)
+        else:
+            pass
 
     def run(self):
         cookies = self.fetch_cookie()
@@ -270,18 +300,19 @@ class ZLXQ:
             self.headers['authorization'] = i
             self.user_info()
             self.sign_in()
-            self.logger.info("wait 10-15s")
-            time.sleep(random.randint(10, 15))
+            self.logger.info("wait 15-17s")
+            time.sleep(random.randint(15, 17))
             self.charge_bubbles()
-            self.logger.info("wait 10-15s")
-            time.sleep(random.randint(10, 15))
+            self.logger.info("wait 15-17s")
+            time.sleep(random.randint(15, 17))
             self.fetch_money()
-            self.logger.info("wait 10-15s")
-            time.sleep(random.randint(10, 15))
+            self.logger.info("wait 15-17s")
+            time.sleep(random.randint(15, 17))
             self.cycle_match()
-            self.logger.info("wait 3-5s")
-            time.sleep(random.randint(3, 5))
+            self.logger.info("wait 15-17s")
+            time.sleep(random.randint(15, 17))
             self.cyc_flop()
+            self.red()
 
 
 if __name__ == "__main__":
